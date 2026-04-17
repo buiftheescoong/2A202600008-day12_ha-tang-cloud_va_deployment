@@ -1,9 +1,11 @@
 [build]
-builder = "DOCKERFILE"
+builder = "docker"
+dockerfilePath = "06-lab-complete/Dockerfile"
+context = ".."
 
 [deploy]
-startCommand = "uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 2"
+startCommand = "python -m app.main"
 healthcheckPath = "/health"
-healthcheckTimeout = 30
-restartPolicyType = "ON_FAILURE"
-restartPolicyMaxRetries = 3
+healthcheckTimeout = 100
+restartPolicyType = "on-failure"
+maxRestartRetries = 10
