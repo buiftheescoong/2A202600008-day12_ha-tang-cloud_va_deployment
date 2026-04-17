@@ -13,7 +13,8 @@ RUN pip install --no-cache-dir --user -r requirements.txt
 # Stage 2: Runtime
 FROM python:3.11-slim AS runtime
 
-RUN groupadd -r appuser && useradd -r -g appuser appuser
+# Tạo appuser một cách an toàn hơn
+RUN id -u appuser >/dev/null 2>&1 || (groupadd -r appuser && useradd -r -g appuser appuser)
 
 WORKDIR /app
 
@@ -21,7 +22,6 @@ COPY --from=builder /root/.local /home/appuser/.local
 
 # Copy application code
 COPY 06-lab-complete/app/ /app/app/
-COPY utils/ /app/utils/
 
 RUN chown -R appuser:appuser /app
 

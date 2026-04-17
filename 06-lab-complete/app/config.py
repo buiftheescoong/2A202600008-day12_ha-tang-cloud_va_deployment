@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     allowed_origins: List[str] = ["*"]
     
     # Rate Limiting & Budgeting
-    rate_limit_per_minute: int = 20
+    rate_limit_per_minute: int = 10
     monthly_budget_usd: float = 10.0
     
     # Storage

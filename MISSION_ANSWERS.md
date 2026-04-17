@@ -66,8 +66,8 @@ graph TD
 ## Part 3: Cloud Deployment
 
 ### Exercise 3.1: Railway deployment
-- URL: https://deployrailway-production-e1a3.up.railway.app/
-- Screenshot: [Link to screenshot in repo]
+- URL: https://smartagent-production-2cdd.up.railway.app/
+- Screenshot: ![Railway Deployment](screenshots/railway.png)
 
 **So sánh `railway.toml` vs `render.yaml`:**
 

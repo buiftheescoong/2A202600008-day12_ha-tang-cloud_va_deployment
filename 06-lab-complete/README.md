@@ -1,100 +1,99 @@
-# Lab 12 — Complete Production Agent
+# Smart Travel Assistant - Production AI Agent
 
-Kết hợp TẤT CẢ những gì đã học trong 1 project hoàn chỉnh.
+Hệ thống AI Agent hỗ trợ du lịch thông minh được thiết kế theo tiêu chuẩn Production, hỗ trợ lưu trữ trạng thái (Stateful), giới hạn lưu lượng (Rate Limiting), và quản lý ngân sách (Cost Guard).
 
-## Checklist Deliverable
-
-- [x] Dockerfile (multi-stage, < 500 MB)
-- [x] docker-compose.yml (agent + redis)
-- [x] .dockerignore
-- [x] Health check endpoint (`GET /health`)
-- [x] Readiness endpoint (`GET /ready`)
-- [x] API Key authentication
-- [x] Rate limiting
-- [x] Cost guard
-- [x] Config từ environment variables
-- [x] Structured logging
-- [x] Graceful shutdown
-- [x] Public URL ready (Railway / Render config)
+## 🚀 Tính năng chính
+- **AI Orchestration**: Sử dụng LangGraph để xây dựng luồng xử lý Agent phức tạp.
+- **Persistence**: Lưu trữ lịch sử hội thoại vào Redis Stack (Stateless API).
+- **Security**: Xác thực bằng API Key qua Header `X-API-Key`.
+- **Reliability**: Hỗ trợ Health Check, Ready Check và Graceful Shutdown.
+- **Scaling**: Sẵn sàng triển khai trên Docker và Cloud (Railway/Render).
 
 ---
 
-## Cấu Trúc
-
-```
-06-lab-complete/
-├── app/
-│   ├── main.py         # Entry point — kết hợp tất cả
-│   ├── config.py       # 12-factor config
-│   ├── auth.py         # API Key + JWT
-│   ├── rate_limiter.py # Rate limiting
-│   └── cost_guard.py   # Budget protection
-├── Dockerfile          # Multi-stage, production-ready
-├── docker-compose.yml  # Full stack
-├── railway.toml        # Deploy Railway
-├── render.yaml         # Deploy Render
-├── .env.example        # Template
-├── .dockerignore
-└── requirements.txt
-```
+## 🛠️ Yêu cầu hệ thống
+- Python 3.10+
+- Docker & Docker Compose
+- Redis Stack (nếu chạy local mà không dùng Docker)
 
 ---
 
-## Chạy Local
+## 💻 Cài đặt Local (Development)
 
+### 1. Chuẩn bị môi trường
 ```bash
-# 1. Setup
+# Tạo môi trường ảo
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+.\venv\Scripts\activate   # Windows
+
+# Cài đặt thư viện
+pip install -r requirements.txt
+```
+
+### 2. Cấu hình biến môi trường
+Sao chép file mẫu và điền các API Key của bạn:
+```bash
 cp .env.example .env
+```
+*Lưu ý: Đảm bảo điền ít nhất `GEMINI_API_KEY` và `AGENT_API_KEY`.*
 
-# 2. Chạy với Docker Compose
-docker compose up
-
-# 3. Test
-curl http://localhost/health
-
-# 4. Lấy API key từ .env, test endpoint
-API_KEY=$(grep AGENT_API_KEY .env | cut -d= -f2)
-curl -H "X-API-Key: $API_KEY" \
-     -X POST http://localhost/ask \
-     -H "Content-Type: application/json" \
-     -d '{"question": "What is deployment?"}'
+### 3. Chạy ứng dụng
+```bash
+uvicorn app.main:app --reload --port 8000
 ```
 
 ---
 
-## Deploy Railway (< 5 phút)
+## 🐳 Triển khai với Docker Compose
+
+Đây là cách tốt nhất để giả lập môi trường Production (bao gồm cả Agent, Redis và Nginx Load Balancer).
 
 ```bash
-# Cài Railway CLI
-npm i -g @railway/cli
-
-# Login và deploy
-railway login
-railway init
-railway variables set OPENAI_API_KEY=sk-...
-railway variables set AGENT_API_KEY=your-secret-key
-railway up
-
-# Nhận public URL!
-railway domain
+# Build và khởi chạy 3 instance của Agent
+docker-compose up --build --scale agent=3
 ```
 
 ---
 
-## Deploy Render
+## ☁️ Triển khai lên Railway
 
-1. Push repo lên GitHub
-2. Render Dashboard → New → Blueprint
-3. Connect repo → Render đọc `render.yaml`
-4. Set secrets: `OPENAI_API_KEY`, `AGENT_API_KEY`
-5. Deploy → Nhận URL!
+1. Di chuyển ra thư mục gốc (Root): `cd ..`
+2. Cài đặt Railway CLI: `npm i -g @railway/cli`
+3. Đăng nhập: `railway login`
+4. Liên kết dự án: `railway link`
+5. Deploy: `railway up`
 
 ---
 
-## Kiểm Tra Production Readiness
+## 🧪 Kiểm tra hệ thống (Testing)
 
+Bạn có thể sử dụng script tự động chấm điểm để kiểm tra toàn bộ tiêu chí:
 ```bash
-python check_production_ready.py
+python grade.py . "https://smartagent-production-2cdd.up.railway.app" "lab-secret-key-123"
 ```
 
-Script này kiểm tra tất cả items trong checklist và báo cáo những gì còn thiếu.
+Hoặc dùng `curl`:
+```bash
+# Kiểm tra sức khỏe
+curl http://localhost:8000/health
+
+# Gửi câu hỏi (kèm Auth)
+curl -X POST http://localhost:8000/ask \
+  -H "X-API-Key: lab-secret-key-123" \
+  -H "Content-Type: application/json" \
+  -d '{"question": "Suggest a trip to Japan", "session_id": "user_1"}'
+```
+
+```text
+. (Project Root)
+├── railway.toml            # Cấu hình Railway (Deploy từ đây)
+├── MISSION_ANSWERS.md      # Bài làm lý thuyết & Screenshot
+├── DEPLOYMENT.md           # Thông tin Public URL & Test thực tế
+└── 06-lab-complete/        # Thư mục bài làm chính
+    ├── app/                # Mã nguồn Python (Agent, API, Logic)
+    ├── Dockerfile          # Container config
+    ├── docker-compose.yml  # Local infrastructure config
+    ├── requirements.txt    # Danh sách thư viện
+    └── README.md           # Hướng dẫn này
+```

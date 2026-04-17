@@ -49,8 +49,11 @@ try:
         
     # Required: setup indices in Redis Stack
     memory.setup()
+    print("[INFO] RedisSaver initialized successfully.")
 except Exception as e:
-    print(f"[WARN] RedisSaver setup failed: {e}. Ensure Redis Stack is running.")
+    import traceback
+    print(f"[ERROR] RedisSaver setup failed: {str(e)}")
+    print(traceback.format_exc())
     memory = None
 
 # Compile the graph

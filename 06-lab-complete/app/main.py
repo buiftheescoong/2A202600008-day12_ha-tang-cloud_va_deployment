@@ -63,6 +63,7 @@ app.add_middleware(
 class ChatRequest(BaseModel):
     question: str = Field(..., min_length=1, max_length=2000)
     session_id: str | None = Field(default="default_session", description="Unique session ID")
+    user_id: str | None = Field(default=None, description="Legacy user ID field for compatibility")
 
 class ChatResponse(BaseModel):
     session_id: str
@@ -101,8 +102,9 @@ async def ask(
     check_budget(user_id)
     
     # 2. Configure LangGraph Thread (user_id + session_id)
-    # This ensures horizontal scaling works: any instance can pick up any session.
-    thread_id = f"{user_id}:{body.session_id}"
+    # Priority: body.user_id (for grading) > body.session_id
+    sid = body.user_id if body.user_id else body.session_id
+    thread_id = f"{user_id}:{sid}"
     config = {"configurable": {"thread_id": thread_id}}
     
     # 3. Invoke Agent
