@@ -29,6 +29,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 import uvicorn
 from utils.mock_llm import ask
+import asyncio
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
@@ -94,6 +95,7 @@ def root():
 async def ask_agent(question: str):
     if not _is_ready:
         raise HTTPException(503, "Agent not ready")
+    await asyncio.sleep(4)
     return {"answer": ask(question)}
 
 
